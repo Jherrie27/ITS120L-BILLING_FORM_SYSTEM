@@ -51,3 +51,46 @@ def create_item(request):
         return JsonResponse({'success': True, 'item_id': item.id})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    
+    ##(jherrie) para sa analytics 
+
+    from django.db.models import Count
+from django.utils import timezone
+from django.shortcuts import render
+
+from .models import PenaltyForm  # adjust if your model name differs
+
+
+def analytics_view(request):
+    # Base queryset
+    transactions = PenaltyForm.objects.all()
+
+    # Summary counts
+    total_transactions = transactions.count()
+    pending_count = transactions.filter(status="Pending").count()
+    paid_count = transactions.filter(status="Paid").count()
+    waived_count = transactions.filter(status="Waived").count()
+
+    # Transactions grouped by date (daily)
+    daily_data = (
+        transactions
+        .extra(select={'day': "date(created_at)"})
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+
+    # Prepare data for charts
+    dates = [item['day'].strftime("%Y-%m-%d") for item in daily_data]
+    daily_counts = [item['count'] for item in daily_data]
+
+    context = {
+        "total_transactions": total_transactions,
+        "pending_count": pending_count,
+        "paid_count": paid_count,
+        "waived_count": waived_count,
+        "dates": dates,
+        "daily_counts": daily_counts,
+    }
+
+    return render(request, "analytics.html", context)

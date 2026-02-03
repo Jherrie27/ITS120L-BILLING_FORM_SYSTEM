@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Analytics</h2>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card p-3">
+                <h6>Total Transactions</h6>
+                <h3>{{ total_transactions }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <h6>Pending</h6>
+                <h3>{{ pending_count }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <h6>Paid</h6>
+                <h3>{{ paid_count }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <h6>Waived</h6>
+                <h3>{{ waived_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card p-3">
+                <h5>Transactions Per Day</h5>
+                <canvas id="dailyChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Status Breakdown</h5>
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const dates = {{ dates|safe }};
+    const dailyCounts = {{ daily_counts|safe }};
+
+    // Daily Transactions Chart
+    new Chart(document.getElementById("dailyChart"), {
+        type: "bar",
+        data: {
+            labels: dates,
+            datasets: [{
+                label: "Transactions",
+                data: dailyCounts,
+            }]
+        }
+    });
+
+    // Status Breakdown Chart
+    new Chart(document.getElementById("statusChart"), {
+        type: "pie",
+        data: {
+            labels: ["Pending", "Paid", "Waived"],
+            datasets: [{
+                data: [
+                    {{ pending_count }},
+                    {{ paid_count }},
+                    {{ waived_count }}
+                ]
+            }]
+        }
+    });
+</script>
+{% endblock %}
